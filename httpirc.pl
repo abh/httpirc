@@ -35,6 +35,9 @@ $httpd->reg_cb(
         warn "channel: $channel";
         $channel = "#" . $channel unless $channel =~ m/^#/;
         warn "channel: $channel";
+
+        $con->send_srv("JOIN", $channel);
+
         $con->send_chan($channel, 'PRIVMSG', $channel, $msg);
 
         my $response = {channel => $channel, msg => $msg};
@@ -72,7 +75,7 @@ $con->reg_cb(
 $con->send_srv("JOIN", "#test");
 $con->send_chan("#test", "PRIVMSG", "#test", "hi, i'm a bot!");
 
-$con->connect("irc.sol", 6667, {nick => 'testbot'});
+$con->connect("irc.sol", 6667, {nick => 'sunbot'});
 
 $quit_program->recv;
 
