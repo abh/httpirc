@@ -11,10 +11,20 @@ use AnyEvent::Strict;
 use Data::Dumper ();
 use JSON qw(encode_json decode_json);
 
+use Getopt::Long;
+
+GetOptions(
+           'irc-server=s' => \(my $opt_irc_server),
+           'irc-port=i'   => \(my $opt_irc_port = 6667),
+           'irc-nick=s'   => \(my $opt_irc_nick = 'http'),
+           'http-port=i'  => \(my $opt_http_port = 9090),
+);
+die "--irc-server option required\n" unless defined $opt_irc_server;
+
 my $c = AnyEvent->condvar;
 
 my $con = new AnyEvent::IRC::Client;
-my $httpd = AnyEvent::HTTPD->new(port => 9090);
+my $httpd = AnyEvent::HTTPD->new(port => $opt_http_port);
 
 my $quit_program = AnyEvent->condvar;
 
@@ -22,7 +32,7 @@ $httpd->reg_cb(
     '/' => sub {
         my ($httpd, $req) = @_;
         
-        my $output = '<html><body><h1>git irc</h1>'
+        my $output = '<html><body><h1>http to irc gw</h1>'
                      .'Post to /post with channel and msg parameters to send messages.'
                      .'</body></html>';
         $req->respond({ content => [ 'text/html', $output ] });
@@ -72,10 +82,10 @@ $con->reg_cb(
 #    "Hello there I'm the cool AnyEvent::IRC test script!"
 #);
 
-$con->send_srv("JOIN", "#test");
-$con->send_chan("#test", "PRIVMSG", "#test", "hi, i'm a bot!");
+#$con->send_srv("JOIN", "#test");
+#$con->send_chan("#test", "PRIVMSG", "#test", "hi, i'm a bot!");
 
-$con->connect("irc.sol", 6667, {nick => 'sunbot'});
+$con->connect($opt_irc_server, $opt_irc_port, {nick => $opt_irc_nick});
 
 $quit_program->recv;
 
