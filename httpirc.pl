@@ -30,18 +30,18 @@ $httpd->reg_cb(
     '/post' => sub {
         my ($httpd, $req) = @_;
         warn Data::Dumper->Dump([\$req], [qw(req)]);
-        my $channel = $req->parm('channel');
-        my $msg     = $req->parm('msg');
-        warn "channel: $channel";
-        $channel = "#" . $channel unless $channel =~ m/^#/;
-        warn "channel: $channel";
+        my %args = $req->vars;
+        my $msg     = $args{msg};
+        my $channel = $args{channel};
+        my @channels = ref $channel ? @$channel : ($channel);
+        @channels = map { m/^#/ ? $_ : '#' . $_ } @channels;
 
-        $con->send_srv("JOIN", $channel);
+        for my $channel (@channels) {
+            $con->send_srv("JOIN", $channel);
+            $con->send_chan($channel, 'PRIVMSG', $channel, $msg);
+        }
 
-        $con->send_chan($channel, 'PRIVMSG', $channel, $msg);
-
-        my $response = {channel => $channel, msg => $msg};
-
+        my $response = {channels => \@channels, msg => $msg};
         $req->respond({content => ['text/json', encode_json($response)]});
     }
 );
