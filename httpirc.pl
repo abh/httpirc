@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl -w
+#!/usr/bin/perl -w
 use strict;
 use warnings;
 
@@ -21,11 +21,11 @@ my $quit_program = AnyEvent->condvar;
 $httpd->reg_cb(
     '/' => sub {
         my ($httpd, $req) = @_;
-
-        $req->o("<html><body><h1>git irc</h1>");
-        $req->o("<a href=\"/test\">another test page</a>");
-        $req->o("</body></html>");
-        $req->respond;
+        
+        my $output = '<html><body><h1>git irc</h1>'
+                     .'Post to /post with channel and msg parameters to send messages.'
+                     .'</body></html>';
+        $req->respond({ content => [ 'text/html', $output ] });
     },
     '/post' => sub {
         my ($httpd, $req) = @_;
