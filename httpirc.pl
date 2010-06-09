@@ -48,7 +48,22 @@ $httpd->reg_cb(
 
         for my $channel (@channels) {
             $con->send_srv("JOIN", $channel);
-            $con->send_chan($channel, 'PRIVMSG', $channel, $msg);
+            my @msg;
+            while (length $msg > 300) {
+                $msg =~ s/^(.{300})//sm;
+                my $m = $1;
+                last unless $m;
+                $m =~ s/\n/ /smg;
+                push @msg, $m;
+            }
+            # whatever is remaining
+            push @msg, $msg;
+
+            #warn Data::Dumper->Dump([\@msg], [qw(msg)]);
+
+            for my $m (@msg) {
+                $con->send_chan($channel, 'PRIVMSG', $channel, $m);
+            }
         }
 
         my $response = {channels => \@channels, msg => $msg};
